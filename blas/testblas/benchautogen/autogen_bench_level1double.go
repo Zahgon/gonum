@@ -1,8 +1,3 @@
-// Copyright ©2014 The Gonum Authors. All rights reserved.
-// Use of this code is governed by a BSD-style
-// license that can be found in the LICENSE file
-
-// Script for automatic code generation of the benchmark routines.
 package main
 
 import (
@@ -10,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 )
 
 var gopath string
@@ -84,7 +78,7 @@ type level1functionStruct struct {
 	call       string
 	extraSetup string
 	oneInput   bool
-	extraName  string // if have a couple different cases for the same function
+	extraName  string
 }
 
 var level1Functions = []level1functionStruct{
@@ -196,111 +190,17 @@ func main() {
 	}
 }
 
-func printHeader(f errFile, name string) {
-	f.Write(autogen)
-	f.WriteString("\n\n")
-	f.Write(copyrightnotice)
-	f.WriteString("\n\n")
-	f.WriteString("package " + name)
-	f.WriteString("\n\n")
-	f.Write(imports)
-	f.WriteString("\n\n")
-}
+func printHeader(f errFile, name string) { _ = "STUB: not implemented"; return }
 
-// Generate the benchmark scripts for level1
-func level1(benchPath string, pkgname string) error {
-	// Generate level 1 benchmarks
-	level1Filepath := filepath.Join(benchPath, "level1float64_bench_test.go")
-	var f errFile
-	f.file, f.err = os.Create(level1Filepath)
-	if f.err != nil {
-		return f.err
-	}
-	defer f.file.Close()
+func level1(benchPath string, pkgname string) error { _ = "STUB: not implemented"; return nil }
 
-	printHeader(f, pkgname)
-
-	// Print all of the constants
-	f.WriteString("const (\n")
-	f.WriteString("\tposInc1 = " + strconv.Itoa(posInc1) + "\n")
-	f.WriteString("\tposInc2 = " + strconv.Itoa(posInc2) + "\n")
-	f.WriteString("\tnegInc1 = " + strconv.Itoa(negInc1) + "\n")
-	f.WriteString("\tnegInc2 = " + strconv.Itoa(negInc2) + "\n")
-	for _, con := range level1Sizes {
-		f.WriteString("\t" + con.upper + " = " + strconv.Itoa(con.size) + "\n")
-	}
-	f.WriteString(")\n")
-	f.WriteString("\n")
-
-	// Write the randomSlice function
-	f.Write(randomSliceFunction)
-	f.WriteString("\n\n")
-
-	// Start writing the benchmarks
-	for _, fun := range level1Functions {
-		writeLevel1Benchmark(fun, f)
-		f.WriteString("\n/* ------------------ */ \n")
-	}
-
-	return f.err
-}
-
-func writeLevel1Benchmark(fun level1functionStruct, f errFile) {
-	// First, write the base benchmark file
-	f.WriteString("func benchmark" + fun.camel + fun.extraName + "(b *testing.B, ")
-	f.WriteString(fun.sig)
-	f.WriteString(") {\n")
-
-	f.WriteString("b.ResetTimer()\n")
-	f.WriteString("for i := 0; i < b.N; i++{\n")
-	f.WriteString("\timpl." + fun.camel + "(")
-
-	f.WriteString(fun.call)
-	f.WriteString(")\n}\n}\n")
-	f.WriteString("\n")
-
-	// Write all of the benchmarks to call it
-	for _, sz := range level1Sizes {
-		lambda := func(incX, incY, name string, twoInput bool) {
-			f.WriteString("func Benchmark" + fun.camel + fun.extraName + sz.camel + name + "(b *testing.B){\n")
-			f.WriteString("n := " + sz.upper + "\n")
-			f.WriteString("incX := " + incX + "\n")
-			f.WriteString("x := randomSlice(n, incX)\n")
-			if twoInput {
-				f.WriteString("incY := " + incY + "\n")
-				f.WriteString("y := randomSlice(n, incY)\n")
-			}
-			f.WriteString(fun.extraSetup + "\n")
-			f.WriteString("benchmark" + fun.camel + fun.extraName + "(b, " + fun.call + ")\n")
-			f.WriteString("}\n\n")
-		}
-		if fun.oneInput {
-			lambda("1", "", "UnitaryInc", false)
-			lambda("posInc1", "", "PosInc", false)
-		} else {
-			lambda("1", "1", "BothUnitary", true)
-			lambda("posInc1", "1", "IncUni", true)
-			lambda("1", "negInc1", "UniInc", true)
-			lambda("posInc1", "negInc1", "BothInc", true)
-		}
-	}
-}
+func writeLevel1Benchmark(fun level1functionStruct, f errFile) { _ = "STUB: not implemented"; return }
 
 type errFile struct {
 	file *os.File
 	err  error
 }
 
-func (f *errFile) Write(b []byte) {
-	if f.err != nil {
-		return
-	}
-	_, f.err = f.file.Write(b)
-}
+func (f *errFile) Write(b []byte) { _ = "STUB: not implemented"; return }
 
-func (f *errFile) WriteString(s string) {
-	if f.err != nil {
-		return
-	}
-	_, f.err = f.file.WriteString(s)
-}
+func (f *errFile) WriteString(s string) { _ = "STUB: not implemented"; return }

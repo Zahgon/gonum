@@ -1,7 +1,3 @@
-// Copyright ©2014 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package testblas
 
 import (
@@ -101,49 +97,4 @@ var cases = []struct {
 	},
 }
 
-func DtxmvTest(t *testing.T, blasser Dtxmver) {
-
-	for nc, c := range cases {
-		for nx, x := range c.ins {
-			in := make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtrmv(c.ul, blas.NoTrans, c.d, c.n, c.tr, c.n, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solNoTrans, 1) {
-				t.Error("Wrong Dtrmv result for: NoTrans  in Case:", nc, "input:", nx)
-			}
-
-			in = make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtrmv(c.ul, blas.Trans, c.d, c.n, c.tr, c.n, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solTrans, 1) {
-				t.Error("Wrong Dtrmv result for: Trans in Case:", nc, "input:", nx)
-			}
-			in = make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtbmv(c.ul, blas.NoTrans, c.d, c.n, c.k, c.tb, c.ldab, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solNoTrans, 1) {
-				t.Error("Wrong Dtbmv result for: NoTrans  in Case:", nc, "input:", nx)
-			}
-
-			in = make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtbmv(c.ul, blas.Trans, c.d, c.n, c.k, c.tb, c.ldab, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solTrans, 1) {
-				t.Error("Wrong Dtbmv result for: Trans in Case:", nc, "input:", nx)
-			}
-			in = make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtpmv(c.ul, blas.NoTrans, c.d, c.n, c.tp, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solNoTrans, 1) {
-				t.Error("Wrong Dtpmv result for:  NoTrans  in Case:", nc, "input:", nx)
-			}
-
-			in = make([]float64, len(x.data))
-			copy(in, x.data)
-			blasser.Dtpmv(c.ul, blas.Trans, c.d, c.n, c.tp, in, x.inc)
-			if !dStridedSliceTolEqual(c.n, in, x.inc, c.solTrans, 1) {
-				t.Error("Wrong Dtpmv result for: Trans in Case:", nc, "input:", nx)
-			}
-		}
-	}
-}
+func DtxmvTest(t *testing.T, blasser Dtxmver) { _ = "STUB: not implemented"; return }

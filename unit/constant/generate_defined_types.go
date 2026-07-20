@@ -1,7 +1,3 @@
-// Copyright ©2019 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 //go:build ignore
 // +build ignore
 
@@ -70,7 +66,7 @@ func main() {
 		}
 		f, err := parser.ParseFile(fset, fn, nil, 0)
 		if err != nil {
-			log.Fatalf("failed to parse %q: %v", fn, err) // parse error
+			log.Fatalf("failed to parse %q: %v", fn, err)
 		}
 		if f.Name.Name != "unit" {
 			log.Fatalf("not parsing unit package: %q", f.Name.Name)
@@ -103,7 +99,7 @@ func main() {
 
 	b, err := format.Source(buf.Bytes())
 	if err != nil {
-		f.Write(buf.Bytes()) // This is here to debug bad format.
+		f.Write(buf.Bytes())
 		log.Fatalf("error formatting %q: %s", f.Name(), err)
 	}
 

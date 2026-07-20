@@ -1,36 +1,26 @@
-// Copyright ©2013 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 //go:generate ./conversions.bash
 
 package blas
 
-// Flag constants indicate Givens transformation H matrix state.
 type Flag int
 
 const (
-	Identity    Flag = -2 // H is the identity matrix; no rotation is needed.
-	Rescaling   Flag = -1 // H specifies rescaling.
-	OffDiagonal Flag = 0  // Off-diagonal elements of H are non-unit.
-	Diagonal    Flag = 1  // Diagonal elements of H are non-unit.
+	Identity    Flag = -2
+	Rescaling   Flag = -1
+	OffDiagonal Flag = 0
+	Diagonal    Flag = 1
 )
 
-// SrotmParams contains Givens transformation parameters returned
-// by the Float32 Srotm method.
 type SrotmParams struct {
 	Flag
-	H [4]float32 // Column-major 2 by 2 matrix.
+	H [4]float32
 }
 
-// DrotmParams contains Givens transformation parameters returned
-// by the Float64 Drotm method.
 type DrotmParams struct {
 	Flag
-	H [4]float64 // Column-major 2 by 2 matrix.
+	H [4]float64
 }
 
-// Transpose specifies the transposition operation of a matrix.
 type Transpose byte
 
 const (
@@ -39,7 +29,6 @@ const (
 	ConjTrans Transpose = 'C'
 )
 
-// Uplo specifies whether a matrix is upper or lower triangular.
 type Uplo byte
 
 const (
@@ -48,7 +37,6 @@ const (
 	All   Uplo = 'A'
 )
 
-// Diag specifies whether a matrix is unit triangular.
 type Diag byte
 
 const (
@@ -56,7 +44,6 @@ const (
 	Unit    Diag = 'U'
 )
 
-// Side specifies from which side a multiplication operation is performed.
 type Side byte
 
 const (
@@ -64,14 +51,12 @@ const (
 	Right Side = 'R'
 )
 
-// Float32 implements the single precision real BLAS routines.
 type Float32 interface {
 	Float32Level1
 	Float32Level2
 	Float32Level3
 }
 
-// Float32Level1 implements the single precision real BLAS Level 1 routines.
 type Float32Level1 interface {
 	Sdsdot(n int, alpha float32, x []float32, incX int, y []float32, incY int) float32
 	Dsdot(n int, x []float32, incX int, y []float32, incY int) float64
@@ -89,7 +74,6 @@ type Float32Level1 interface {
 	Sscal(n int, alpha float32, x []float32, incX int)
 }
 
-// Float32Level2 implements the single precision real BLAS Level 2 routines.
 type Float32Level2 interface {
 	Sgemv(tA Transpose, m, n int, alpha float32, a []float32, lda int, x []float32, incX int, beta float32, y []float32, incY int)
 	Sgbmv(tA Transpose, m, n, kL, kU int, alpha float32, a []float32, lda int, x []float32, incX int, beta float32, y []float32, incY int)
@@ -109,7 +93,6 @@ type Float32Level2 interface {
 	Sspr2(ul Uplo, n int, alpha float32, x []float32, incX int, y []float32, incY int, a []float32)
 }
 
-// Float32Level3 implements the single precision real BLAS Level 3 routines.
 type Float32Level3 interface {
 	Sgemm(tA, tB Transpose, m, n, k int, alpha float32, a []float32, lda int, b []float32, ldb int, beta float32, c []float32, ldc int)
 	Ssymm(s Side, ul Uplo, m, n int, alpha float32, a []float32, lda int, b []float32, ldb int, beta float32, c []float32, ldc int)
@@ -119,14 +102,12 @@ type Float32Level3 interface {
 	Strsm(s Side, ul Uplo, tA Transpose, d Diag, m, n int, alpha float32, a []float32, lda int, b []float32, ldb int)
 }
 
-// Float64 implements the single precision real BLAS routines.
 type Float64 interface {
 	Float64Level1
 	Float64Level2
 	Float64Level3
 }
 
-// Float64Level1 implements the double precision real BLAS Level 1 routines.
 type Float64Level1 interface {
 	Ddot(n int, x []float64, incX int, y []float64, incY int) float64
 	Dnrm2(n int, x []float64, incX int) float64
@@ -142,7 +123,6 @@ type Float64Level1 interface {
 	Dscal(n int, alpha float64, x []float64, incX int)
 }
 
-// Float64Level2 implements the double precision real BLAS Level 2 routines.
 type Float64Level2 interface {
 	Dgemv(tA Transpose, m, n int, alpha float64, a []float64, lda int, x []float64, incX int, beta float64, y []float64, incY int)
 	Dgbmv(tA Transpose, m, n, kL, kU int, alpha float64, a []float64, lda int, x []float64, incX int, beta float64, y []float64, incY int)
@@ -162,7 +142,6 @@ type Float64Level2 interface {
 	Dspr2(ul Uplo, n int, alpha float64, x []float64, incX int, y []float64, incY int, a []float64)
 }
 
-// Float64Level3 implements the double precision real BLAS Level 3 routines.
 type Float64Level3 interface {
 	Dgemm(tA, tB Transpose, m, n, k int, alpha float64, a []float64, lda int, b []float64, ldb int, beta float64, c []float64, ldc int)
 	Dsymm(s Side, ul Uplo, m, n int, alpha float64, a []float64, lda int, b []float64, ldb int, beta float64, c []float64, ldc int)
@@ -172,14 +151,12 @@ type Float64Level3 interface {
 	Dtrsm(s Side, ul Uplo, tA Transpose, d Diag, m, n int, alpha float64, a []float64, lda int, b []float64, ldb int)
 }
 
-// Complex64 implements the single precision complex BLAS routines.
 type Complex64 interface {
 	Complex64Level1
 	Complex64Level2
 	Complex64Level3
 }
 
-// Complex64Level1 implements the single precision complex BLAS Level 1 routines.
 type Complex64Level1 interface {
 	Cdotu(n int, x []complex64, incX int, y []complex64, incY int) (dotu complex64)
 	Cdotc(n int, x []complex64, incX int, y []complex64, incY int) (dotc complex64)
@@ -193,7 +170,6 @@ type Complex64Level1 interface {
 	Csscal(n int, alpha float32, x []complex64, incX int)
 }
 
-// Complex64Level2 implements the single precision complex BLAS routines Level 2 routines.
 type Complex64Level2 interface {
 	Cgemv(tA Transpose, m, n int, alpha complex64, a []complex64, lda int, x []complex64, incX int, beta complex64, y []complex64, incY int)
 	Cgbmv(tA Transpose, m, n, kL, kU int, alpha complex64, a []complex64, lda int, x []complex64, incX int, beta complex64, y []complex64, incY int)
@@ -214,7 +190,6 @@ type Complex64Level2 interface {
 	Chpr2(ul Uplo, n int, alpha complex64, x []complex64, incX int, y []complex64, incY int, ap []complex64)
 }
 
-// Complex64Level3 implements the single precision complex BLAS Level 3 routines.
 type Complex64Level3 interface {
 	Cgemm(tA, tB Transpose, m, n, k int, alpha complex64, a []complex64, lda int, b []complex64, ldb int, beta complex64, c []complex64, ldc int)
 	Csymm(s Side, ul Uplo, m, n int, alpha complex64, a []complex64, lda int, b []complex64, ldb int, beta complex64, c []complex64, ldc int)
@@ -227,14 +202,12 @@ type Complex64Level3 interface {
 	Cher2k(ul Uplo, t Transpose, n, k int, alpha complex64, a []complex64, lda int, b []complex64, ldb int, beta float32, c []complex64, ldc int)
 }
 
-// Complex128 implements the double precision complex BLAS routines.
 type Complex128 interface {
 	Complex128Level1
 	Complex128Level2
 	Complex128Level3
 }
 
-// Complex128Level1 implements the double precision complex BLAS Level 1 routines.
 type Complex128Level1 interface {
 	Zdotu(n int, x []complex128, incX int, y []complex128, incY int) (dotu complex128)
 	Zdotc(n int, x []complex128, incX int, y []complex128, incY int) (dotc complex128)
@@ -248,7 +221,6 @@ type Complex128Level1 interface {
 	Zdscal(n int, alpha float64, x []complex128, incX int)
 }
 
-// Complex128Level2 implements the double precision complex BLAS Level 2 routines.
 type Complex128Level2 interface {
 	Zgemv(tA Transpose, m, n int, alpha complex128, a []complex128, lda int, x []complex128, incX int, beta complex128, y []complex128, incY int)
 	Zgbmv(tA Transpose, m, n int, kL int, kU int, alpha complex128, a []complex128, lda int, x []complex128, incX int, beta complex128, y []complex128, incY int)
@@ -269,7 +241,6 @@ type Complex128Level2 interface {
 	Zhpr2(ul Uplo, n int, alpha complex128, x []complex128, incX int, y []complex128, incY int, ap []complex128)
 }
 
-// Complex128Level3 implements the double precision complex BLAS Level 3 routines.
 type Complex128Level3 interface {
 	Zgemm(tA, tB Transpose, m, n, k int, alpha complex128, a []complex128, lda int, b []complex128, ldb int, beta complex128, c []complex128, ldc int)
 	Zsymm(s Side, ul Uplo, m, n int, alpha complex128, a []complex128, lda int, b []complex128, ldb int, beta complex128, c []complex128, ldc int)

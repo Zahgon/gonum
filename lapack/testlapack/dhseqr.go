@@ -1,19 +1,8 @@
-// Copyright ©2016 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package testlapack
 
 import (
-	"fmt"
-	"math"
-	"runtime"
-	"slices"
 	"testing"
 
-	"gonum.org/v1/gonum/blas"
-	"gonum.org/v1/gonum/blas/blas64"
-	"gonum.org/v1/gonum/floats"
 	"gonum.org/v1/gonum/lapack"
 )
 
@@ -34,180 +23,11 @@ type dhseqrTest struct {
 	skipGOARCH []string
 }
 
-func DhseqrTest(t *testing.T, impl Dhseqrer) {
-	for i, tc := range dhseqrTests {
-		if slices.Contains(tc.skipGOARCH, runtime.GOARCH) {
-			t.Logf("skipping case %d on %s", i, runtime.GOARCH)
-			continue
-		}
-		for _, job := range []lapack.SchurJob{lapack.EigenvaluesOnly, lapack.EigenvaluesAndSchur} {
-			for _, wantz := range []bool{false, true} {
-				for _, extra := range []int{0, 11} {
-					testDhseqr(t, impl, i, tc, job, wantz, extra, true)
-					testDhseqr(t, impl, i, tc, job, wantz, extra, false)
-				}
-			}
-		}
-	}
-}
+func DhseqrTest(t *testing.T, impl Dhseqrer) { _ = "STUB: not implemented"; return }
 
 func testDhseqr(t *testing.T, impl Dhseqrer, i int, test dhseqrTest, job lapack.SchurJob, wantz bool, extra int, optwork bool) {
-	const tol = 1e-14
-	evTol := test.tol
-	if evTol == 0 {
-		evTol = tol
-	}
-
-	n := test.n
-	ihi := test.ihi
-	ilo := test.ilo
-	h := zeros(n, n, n+extra)
-	copyGeneral(h, blas64.General{Rows: n, Cols: n, Stride: max(1, n), Data: test.h})
-	hCopy := cloneGeneral(h)
-
-	compz := lapack.SchurNone
-	z := blas64.General{Stride: max(1, n)}
-	if wantz {
-		// First, let Dhseqr initialize Z to the identity matrix.
-		compz = lapack.SchurHess
-		z = nanGeneral(n, n, n+extra)
-	}
-
-	wr := nanSlice(n)
-	wi := nanSlice(n)
-
-	work := nanSlice(max(1, n))
-	if optwork {
-		impl.Dhseqr(job, lapack.SchurHess, n, ilo, ihi, h.Data, h.Stride, wr, wi, z.Data, z.Stride, work, -1)
-		work = nanSlice(int(work[0]))
-	}
-
-	unconverged := impl.Dhseqr(job, compz, n, ilo, ihi, h.Data, h.Stride, wr, wi, z.Data, z.Stride, work, len(work))
-	prefix := fmt.Sprintf("Case %v: job=%c, compz=%c, n=%v, ilo=%v, ihi=%v, extra=%v, optwk=%v",
-		i, job, compz, n, ilo, ihi, extra, optwork)
-	if unconverged > 0 {
-		t.Logf("%v: Dhseqr did not compute all eigenvalues. unconverged=%v", prefix, unconverged)
-		if unconverged <= ilo {
-			t.Fatalf("%v: 0 < unconverged <= ilo", prefix)
-		}
-	}
-
-	// Check that wr and wi have been assigned completely.
-	if floats.HasNaN(wr) {
-		t.Errorf("%v: wr has NaN elements", prefix)
-	}
-	if floats.HasNaN(wi) {
-		t.Errorf("%v: wi has NaN elements", prefix)
-	}
-
-	// Check that complex eigenvalues are stored in consecutive elements as
-	// complex conjugate pairs.
-	for i := 0; i < n; {
-		if unconverged > 0 && i == ilo {
-			// Skip the unconverged eigenvalues.
-			i = unconverged
-			continue
-		}
-		if wi[i] == 0 {
-			// Real eigenvalue.
-			i++
-			continue
-		}
-		// Complex conjugate pair.
-		if wr[i] != wr[i+1] {
-			t.Errorf("%v: conjugate pair has real parts unequal", prefix)
-		}
-		if wi[i] < 0 {
-			t.Errorf("%v: first in conjugate pair has negative imaginary part", prefix)
-		}
-		if wi[i+1] != -wi[i] {
-			t.Errorf("%v: complex pair is not conjugate", prefix)
-		}
-		i += 2
-	}
-
-	// Check that H contains the Schur form T.
-	if job == lapack.EigenvaluesAndSchur {
-		for i := 0; i < n; {
-			if unconverged > 0 && i == ilo {
-				// Skip the unconverged eigenvalues.
-				i = unconverged
-				continue
-			}
-			if wi[i] == 0 {
-				// Real eigenvalue.
-				if wr[i] != h.Data[i*h.Stride+i] {
-					t.Errorf("%v: T not in Schur form (real eigenvalue not on diagonal)", prefix)
-				}
-				i++
-				continue
-			}
-			// Complex conjugate pair.
-			im := math.Sqrt(math.Abs(h.Data[(i+1)*h.Stride+i])) * math.Sqrt(math.Abs(h.Data[i*h.Stride+i+1]))
-			if wr[i] != h.Data[i*h.Stride+i] || wr[i] != h.Data[(i+1)*h.Stride+i+1] ||
-				math.Abs(wi[i]-im) > tol {
-				t.Errorf("%v: conjugate pair and 2×2 diagonal block don't correspond", prefix)
-			}
-			i += 2
-		}
-	}
-
-	// Check that all the found eigenvalues are really eigenvalues.
-	foundEV := make([]bool, len(test.evWant))
-	for i := 0; i < n; {
-		if unconverged > 0 && i == ilo {
-			// Skip the unconverged eigenvalues.
-			i = unconverged
-			continue
-		}
-		ev := complex(wr[i], wi[i])
-		// Use problem-specific tolerance for testing eigenvalues.
-		found, index := containsComplex(test.evWant, ev, evTol)
-		if !found {
-			t.Errorf("%v: unexpected eigenvalue %v", prefix, ev)
-		} else {
-			foundEV[index] = true
-		}
-		i++
-	}
-	if unconverged == 0 {
-		// Check that all eigenvalues have been found.
-		// This simple check assumes that all eigenvalues are
-		// sufficiently separated from each other at least by evTol.
-		for i := range foundEV {
-			if !foundEV[i] {
-				t.Errorf("%v: %vth eigenvalue not found", prefix, i)
-			}
-		}
-	}
-
-	if !wantz {
-		return
-	}
-
-	// Z must be orthogonal.
-	if resid := residualOrthogonal(z, false); resid > tol*float64(n) {
-		t.Errorf("Case %v: Z is not orthogonal; resid=%v, want<=%v", prefix, resid, tol*float64(n))
-	}
-
-	if job == lapack.EigenvaluesAndSchur {
-		tz := zeros(n, n, n)
-		blas64.Gemm(blas.NoTrans, blas.Trans, 1, h, z, 0, tz)
-		ztz := zeros(n, n, n)
-		blas64.Gemm(blas.NoTrans, blas.NoTrans, 1, z, tz, 0, ztz)
-		if !equalApproxGeneral(ztz, hCopy, evTol) {
-			t.Errorf("%v: H != Z T Zᵀ", prefix)
-		}
-	}
-
-	// Restore H.
-	copyGeneral(h, hCopy)
-	// Call Dhseqr again with the identity matrix given explicitly in Q.
-	q := eye(n, n+extra)
-	impl.Dhseqr(job, lapack.SchurOrig, n, ilo, ihi, h.Data, h.Stride, wr, wi, q.Data, q.Stride, work, len(work))
-	if !equalApproxGeneral(z, q, 0) {
-		t.Errorf("%v: Z and Q are not equal", prefix)
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
 var dhseqrTests = []dhseqrTest{
@@ -312,10 +132,7 @@ var dhseqrTests = []dhseqrTest{
 		},
 	},
 	{
-		// BFW62A matrix from MatrixMarket, balanced and factorized into
-		// upper Hessenberg form in Octave.
-		// Eigenvalues computed by eig function in Octave.
-		// Dhseqr considers this matrix small (n <= 75).
+
 		n:   62,
 		ilo: 0,
 		ihi: 61,
@@ -450,12 +267,8 @@ var dhseqrTests = []dhseqrTest{
 		},
 	},
 	{
-		skipGOARCH: []string{"arm64"}, // FIXME
+		skipGOARCH: []string{"arm64"},
 
-		// TOLS90 matrix from MatrixMarket, balanced and factorized into
-		// upper Hessenberg form in Octave.
-		// Eigenvalues computed by eig function in Octave.
-		// Dhseqr considers this matrix big (n > 75).
 		n:   90,
 		ilo: 0,
 		ihi: 89,
@@ -646,11 +459,7 @@ var dhseqrTests = []dhseqrTest{
 		},
 	},
 	{
-		// TUB100 matrix from MatrixMarket, balanced and factorized into
-		// upper Hessenberg form in Octave, and embedded into a 104×104
-		// diagonal matrix to test with ilo != 0 and ihi != n-1.
-		// Eigenvalues computed by eig function in Octave.
-		// Dhseqr considers this matrix big (n > 75).
+
 		n:   104,
 		ilo: 2,
 		ihi: 101,

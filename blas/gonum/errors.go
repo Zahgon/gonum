@@ -1,11 +1,5 @@
-// Copyright ©2015 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gonum
 
-// Panic strings used during parameter checks.
-// This list is duplicated in netlib/blas/netlib. Keep in sync.
 const (
 	zeroIncX = "blas: zero x index increment"
 	zeroIncY = "blas: zero y index increment"

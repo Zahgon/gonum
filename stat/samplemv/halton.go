@@ -1,97 +1,32 @@
-// Copyright ©2017 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package samplemv
 
 import (
-	"fmt"
 	"math/rand/v2"
 
 	"gonum.org/v1/gonum/mat"
 	"gonum.org/v1/gonum/stat/distmv"
 )
 
-// Halton is a type for sampling using the Halton sequence from
-// the given distribution. The specific method for scrambling (or lack thereof)
-// is specified by the HaltonKind. If src is not nil, it will be used to generate
-// the randomness needed to scramble the sequence (if necessary), otherwise
-// the rand package will be used. Halton panics if the HaltonKind is unrecognized
-// or if q is nil.
-//
-// Halton sequence random number generation is a quasi-Monte Carlo procedure
-// where the samples are generated to be evenly spaced out across the distribution.
-// Note that this means the sample locations are correlated with one another.
-// The distmv.NewUnitUniform function can be used for easy sampling from the unit hypercube.
 type Halton struct {
 	Kind HaltonKind
 	Q    distmv.Quantiler
 	Src  rand.Source
 }
 
-// Sample generates rows(batch) samples using the Halton generation procedure.
-func (h Halton) Sample(batch *mat.Dense) {
-	halton(batch, h.Kind, h.Q, h.Src)
-}
+func (h Halton) Sample(batch *mat.Dense) { _ = "STUB: not implemented"; return }
 
-// HaltonKind specifies the type of algorithm used to generate Halton samples.
 type HaltonKind int
 
 const (
-	// Owen generates (scrambled) Halton samples using the Randomized van der Corput
-	// algorithm described in
-	//  A randomized Halton algorithm
-	//  Art Owen
-	//  https://arxiv.org/pdf/1706.02808.pdf
-	// Currently limited to 1000 dimensional inputs.
 	Owen = iota + 1
 )
 
 func halton(batch *mat.Dense, kind HaltonKind, q distmv.Quantiler, src rand.Source) {
-	// Code based from https://arxiv.org/pdf/1706.02808.pdf .
-	perm := rand.Perm
-	if src != nil {
-		perm = rand.New(src).Perm
-	}
-
-	n, d := batch.Dims()
-	// Each case should generate random numbers over the unit cube.
-	switch kind {
-	default:
-		panic("halton: unknown HaltonKind")
-	case Owen:
-		for j := 0; j < d; j++ {
-			b := nthPrime(j)
-			div := int64(1)
-			b2r := 1 / float64(b)
-			for 1-b2r < 1 {
-				p := perm(b)
-				for i := 0; i < n; i++ {
-					dig := (int64(i) / div) % int64(b)
-					pdig := float64(p[dig])
-					v := batch.At(i, j)
-					v += pdig * b2r
-					batch.Set(i, j, v)
-				}
-				div *= int64(b)
-				b2r /= float64(b)
-			}
-		}
-	}
-	p := make([]float64, d)
-	for i := 0; i < n; i++ {
-		copy(p, batch.RawRowView(i))
-		q.Quantile(batch.RawRowView(i), p)
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
-// nthPrime returns the nth prime number (0 indexed).
-func nthPrime(n int) int {
-	if n > len(firstPrimes) {
-		panic(fmt.Sprintf("halton: dimension must be less than %d", len(firstPrimes)))
-	}
-	return firstPrimes[n]
-}
+func nthPrime(n int) int { _ = "STUB: not implemented"; return 0 }
 
 var firstPrimes = []int{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
 	53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131,

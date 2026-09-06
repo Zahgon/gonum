@@ -1,14 +1,7 @@
-// Copyright ©2017 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package mat
 
 import (
-	"gonum.org/v1/gonum/blas"
 	"gonum.org/v1/gonum/blas/blas64"
-	"gonum.org/v1/gonum/lapack"
-	"gonum.org/v1/gonum/lapack/lapack64"
 )
 
 var (
@@ -24,36 +17,25 @@ var (
 	_ ColNonZeroDoer = bandDense
 )
 
-// BandDense represents a band matrix in dense storage format.
 type BandDense struct {
 	mat blas64.Band
 }
 
-// Banded is a band matrix representation.
 type Banded interface {
 	Matrix
-	// Bandwidth returns the lower and upper bandwidth values for
-	// the matrix. The total bandwidth of the matrix is kl+ku+1.
+
 	Bandwidth() (kl, ku int)
 
-	// TBand is the equivalent of the T() method in the Matrix
-	// interface but guarantees the transpose is of banded type.
 	TBand() Banded
 }
 
-// A RawBander can return a blas64.Band representation of the receiver.
-// Changes to the blas64.Band.Data slice will be reflected in the original
-// matrix, changes to the Rows, Cols, KL, KU and Stride fields will not.
 type RawBander interface {
 	RawBand() blas64.Band
 }
 
-// A MutableBanded can set elements of a band matrix.
 type MutableBanded interface {
 	Banded
 
-	// SetBand sets the element at row i, column j to the value v.
-	// It panics if the location is outside the appropriate region of the matrix.
 	SetBand(i, j int, v float64)
 }
 
@@ -63,306 +45,68 @@ var (
 	_ UntransposeBander = TransposeBand{}
 )
 
-// TransposeBand is a type for performing an implicit transpose of a band
-// matrix. It implements the Banded interface, returning values from the
-// transpose of the matrix within.
 type TransposeBand struct {
 	Banded Banded
 }
 
-// At returns the value of the element at row i and column j of the transposed
-// matrix, that is, row j and column i of the Banded field.
-func (t TransposeBand) At(i, j int) float64 {
-	return t.Banded.At(j, i)
-}
+func (t TransposeBand) At(i, j int) float64 { _ = "STUB: not implemented"; return 0 }
 
-// Dims returns the dimensions of the transposed matrix.
-func (t TransposeBand) Dims() (r, c int) {
-	c, r = t.Banded.Dims()
-	return r, c
-}
+func (t TransposeBand) Dims() (r, c int) { _ = "STUB: not implemented"; return 0, 0 }
 
-// T performs an implicit transpose by returning the Banded field.
-func (t TransposeBand) T() Matrix {
-	return t.Banded
-}
+func (t TransposeBand) T() Matrix { _ = "STUB: not implemented"; return *new(Matrix) }
 
-// Bandwidth returns the lower and upper bandwidth values for
-// the transposed matrix.
-func (t TransposeBand) Bandwidth() (kl, ku int) {
-	kl, ku = t.Banded.Bandwidth()
-	return ku, kl
-}
+func (t TransposeBand) Bandwidth() (kl, ku int) { _ = "STUB: not implemented"; return 0, 0 }
 
-// TBand performs an implicit transpose by returning the Banded field.
-func (t TransposeBand) TBand() Banded {
-	return t.Banded
-}
+func (t TransposeBand) TBand() Banded { _ = "STUB: not implemented"; return *new(Banded) }
 
-// Untranspose returns the Banded field.
-func (t TransposeBand) Untranspose() Matrix {
-	return t.Banded
-}
+func (t TransposeBand) Untranspose() Matrix { _ = "STUB: not implemented"; return *new(Matrix) }
 
-// UntransposeBand returns the Banded field.
-func (t TransposeBand) UntransposeBand() Banded {
-	return t.Banded
-}
+func (t TransposeBand) UntransposeBand() Banded { _ = "STUB: not implemented"; return *new(Banded) }
 
-// NewBandDense creates a new Band matrix with r rows and c columns. If data == nil,
-// a new slice is allocated for the backing slice. If len(data) == min(r, c+kl)*(kl+ku+1),
-// data is used as the backing slice, and changes to the elements of the returned
-// BandDense will be reflected in data. If neither of these is true, NewBandDense
-// will panic. kl must be at least zero and less r, and ku must be at least zero and
-// less than c, otherwise NewBandDense will panic.
-// NewBandDense will panic if either r or c is zero.
-//
-// The data must be arranged in row-major order constructed by removing the zeros
-// from the rows outside the band and aligning the diagonals. For example, the matrix
-//
-//	1  2  3  0  0  0
-//	4  5  6  7  0  0
-//	0  8  9 10 11  0
-//	0  0 12 13 14 15
-//	0  0  0 16 17 18
-//	0  0  0  0 19 20
-//
-// becomes (* entries are never accessed)
-//   - 1  2  3
-//     4  5  6  7
-//     8  9 10 11
-//     12 13 14 15
-//     16 17 18  *
-//     19 20  *  *
-//
-// which is passed to NewBandDense as []float64{*, 1, 2, 3, 4, ...} with kl=1 and ku=2.
-// Only the values in the band portion of the matrix are used.
 func NewBandDense(r, c, kl, ku int, data []float64) *BandDense {
-	if r <= 0 || c <= 0 || kl < 0 || ku < 0 {
-		if r == 0 || c == 0 {
-			panic(ErrZeroLength)
-		}
-		panic(ErrNegativeDimension)
-	}
-	if kl+1 > r || ku+1 > c {
-		panic(ErrBandwidth)
-	}
-	bc := kl + ku + 1
-	if data != nil && len(data) != min(r, c+kl)*bc {
-		panic(ErrShape)
-	}
-	if data == nil {
-		data = make([]float64, min(r, c+kl)*bc)
-	}
-	return &BandDense{
-		mat: blas64.Band{
-			Rows:   r,
-			Cols:   c,
-			KL:     kl,
-			KU:     ku,
-			Stride: bc,
-			Data:   data,
-		},
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
-// NewDiagonalRect is a convenience function that returns a diagonal matrix represented by a
-// BandDense. The length of data must be min(r, c) otherwise NewDiagonalRect will panic.
-func NewDiagonalRect(r, c int, data []float64) *BandDense {
-	return NewBandDense(r, c, 0, 0, data)
-}
+func NewDiagonalRect(r, c int, data []float64) *BandDense { _ = "STUB: not implemented"; return nil }
 
-// Dims returns the number of rows and columns in the matrix.
-func (b *BandDense) Dims() (r, c int) {
-	return b.mat.Rows, b.mat.Cols
-}
+func (b *BandDense) Dims() (r, c int) { _ = "STUB: not implemented"; return 0, 0 }
 
-// Bandwidth returns the upper and lower bandwidths of the matrix.
-func (b *BandDense) Bandwidth() (kl, ku int) {
-	return b.mat.KL, b.mat.KU
-}
+func (b *BandDense) Bandwidth() (kl, ku int) { _ = "STUB: not implemented"; return 0, 0 }
 
-// T performs an implicit transpose by returning the receiver inside a Transpose.
-func (b *BandDense) T() Matrix {
-	return Transpose{b}
-}
+func (b *BandDense) T() Matrix { _ = "STUB: not implemented"; return *new(Matrix) }
 
-// TBand performs an implicit transpose by returning the receiver inside a TransposeBand.
-func (b *BandDense) TBand() Banded {
-	return TransposeBand{b}
-}
+func (b *BandDense) TBand() Banded { _ = "STUB: not implemented"; return *new(Banded) }
 
-// RawBand returns the underlying blas64.Band used by the receiver.
-// Changes to elements in the receiver following the call will be reflected
-// in returned blas64.Band.
-func (b *BandDense) RawBand() blas64.Band {
-	return b.mat
-}
+func (b *BandDense) RawBand() blas64.Band { _ = "STUB: not implemented"; return *new(blas64.Band) }
 
-// SetRawBand sets the underlying blas64.Band used by the receiver.
-// Changes to elements in the receiver following the call will be reflected
-// in the input.
-func (b *BandDense) SetRawBand(mat blas64.Band) {
-	b.mat = mat
-}
+func (b *BandDense) SetRawBand(mat blas64.Band) { _ = "STUB: not implemented"; return }
 
-// IsEmpty returns whether the receiver is empty. Empty matrices can be the
-// receiver for size-restricted operations. The receiver can be zeroed using Reset.
-func (b *BandDense) IsEmpty() bool {
-	return b.mat.Stride == 0
-}
+func (b *BandDense) IsEmpty() bool { _ = "STUB: not implemented"; return false }
 
-// Reset empties the matrix so that it can be reused as the
-// receiver of a dimensionally restricted operation.
-//
-// Reset should not be used when the matrix shares backing data.
-// See the Reseter interface for more information.
-func (b *BandDense) Reset() {
-	b.mat.Rows = 0
-	b.mat.Cols = 0
-	b.mat.KL = 0
-	b.mat.KU = 0
-	b.mat.Stride = 0
-	b.mat.Data = b.mat.Data[:0]
-}
+func (b *BandDense) Reset() { _ = "STUB: not implemented"; return }
 
-// DiagView returns the diagonal as a matrix backed by the original data.
-func (b *BandDense) DiagView() Diagonal {
-	n := min(b.mat.Rows, b.mat.Cols)
-	return &DiagDense{
-		mat: blas64.Vector{
-			N:    n,
-			Inc:  b.mat.Stride,
-			Data: b.mat.Data[b.mat.KL : (n-1)*b.mat.Stride+b.mat.KL+1],
-		},
-	}
-}
+func (b *BandDense) DiagView() Diagonal { _ = "STUB: not implemented"; return *new(Diagonal) }
 
-// DoNonZero calls the function fn for each of the non-zero elements of b. The function fn
-// takes a row/column index and the element value of b at (i, j).
-func (b *BandDense) DoNonZero(fn func(i, j int, v float64)) {
-	for i := 0; i < min(b.mat.Rows, b.mat.Cols+b.mat.KL); i++ {
-		for j := max(0, i-b.mat.KL); j < min(b.mat.Cols, i+b.mat.KU+1); j++ {
-			v := b.at(i, j)
-			if v != 0 {
-				fn(i, j, v)
-			}
-		}
-	}
-}
+func (b *BandDense) DoNonZero(fn func(i, j int, v float64)) { _ = "STUB: not implemented"; return }
 
-// DoRowNonZero calls the function fn for each of the non-zero elements of row i of b. The function fn
-// takes a row/column index and the element value of b at (i, j).
 func (b *BandDense) DoRowNonZero(i int, fn func(i, j int, v float64)) {
-	if i < 0 || b.mat.Rows <= i {
-		panic(ErrRowAccess)
-	}
-	for j := max(0, i-b.mat.KL); j < min(b.mat.Cols, i+b.mat.KU+1); j++ {
-		v := b.at(i, j)
-		if v != 0 {
-			fn(i, j, v)
-		}
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
-// DoColNonZero calls the function fn for each of the non-zero elements of column j of b. The function fn
-// takes a row/column index and the element value of b at (i, j).
 func (b *BandDense) DoColNonZero(j int, fn func(i, j int, v float64)) {
-	if j < 0 || b.mat.Cols <= j {
-		panic(ErrColAccess)
-	}
-	for i := 0; i < min(b.mat.Rows, b.mat.Cols+b.mat.KL); i++ {
-		if i-b.mat.KL <= j && j < i+b.mat.KU+1 {
-			v := b.at(i, j)
-			if v != 0 {
-				fn(i, j, v)
-			}
-		}
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
-// Zero sets all of the matrix elements to zero.
-func (b *BandDense) Zero() {
-	m := b.mat.Rows
-	kL := b.mat.KL
-	nCol := b.mat.KU + 1 + kL
-	for i := 0; i < m; i++ {
-		l := max(0, kL-i)
-		u := min(nCol, m+kL-i)
-		zero(b.mat.Data[i*b.mat.Stride+l : i*b.mat.Stride+u])
-	}
-}
+func (b *BandDense) Zero() { _ = "STUB: not implemented"; return }
 
-// Norm returns the specified norm of the receiver. Valid norms are:
-//
-//	1 - The maximum absolute column sum
-//	2 - The Frobenius norm, the square root of the sum of the squares of the elements
-//	Inf - The maximum absolute row sum
-//
-// Norm will panic with ErrNormOrder if an illegal norm is specified and with
-// ErrZeroLength if the matrix has zero size.
-func (b *BandDense) Norm(norm float64) float64 {
-	if b.IsEmpty() {
-		panic(ErrZeroLength)
-	}
-	lnorm := normLapack(norm, false)
-	if lnorm == lapack.MaxColumnSum || lnorm == lapack.MaxRowSum {
-		return lapack64.Langb(lnorm, b.mat)
-	}
-	return lapack64.Langb(lnorm, b.mat)
-}
+func (b *BandDense) Norm(norm float64) float64 { _ = "STUB: not implemented"; return 0 }
 
-// Trace returns the trace of the matrix.
-//
-// Trace will panic with ErrSquare if the matrix is not square and with
-// ErrZeroLength if the matrix has zero size.
-func (b *BandDense) Trace() float64 {
-	r, c := b.Dims()
-	if r != c {
-		panic(ErrSquare)
-	}
-	if b.IsEmpty() {
-		panic(ErrZeroLength)
-	}
-	rb := b.RawBand()
-	var tr float64
-	for i := 0; i < r; i++ {
-		tr += rb.Data[rb.KL+i*rb.Stride]
-	}
-	return tr
-}
+func (b *BandDense) Trace() float64 { _ = "STUB: not implemented"; return 0 }
 
-// MulVecTo computes B⋅x or Bᵀ⋅x storing the result into dst.
 func (b *BandDense) MulVecTo(dst *VecDense, trans bool, x Vector) {
-	m, n := b.Dims()
-	if trans {
-		m, n = n, m
-	}
-	if x.Len() != n {
-		panic(ErrShape)
-	}
-	dst.reuseAsNonZeroed(m)
-
-	t := blas.NoTrans
-	if trans {
-		t = blas.Trans
-	}
-
-	xMat, _ := untransposeExtract(x)
-	if xVec, ok := xMat.(*VecDense); ok {
-		if dst != xVec {
-			dst.checkOverlap(xVec.mat)
-			blas64.Gbmv(t, 1, b.mat, xVec.mat, 0, dst.mat)
-		} else {
-			xCopy := getVecDenseWorkspace(n, false)
-			xCopy.CloneFromVec(xVec)
-			blas64.Gbmv(t, 1, b.mat, xCopy.mat, 0, dst.mat)
-			putVecDenseWorkspace(xCopy)
-		}
-	} else {
-		xCopy := getVecDenseWorkspace(n, false)
-		xCopy.CloneFromVec(x)
-		blas64.Gbmv(t, 1, b.mat, xCopy.mat, 0, dst.mat)
-		putVecDenseWorkspace(xCopy)
-	}
+	_ = "STUB: not implemented"
+	return
 }

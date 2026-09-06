@@ -1,7 +1,3 @@
-// Copyright ©2018 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package testgraph
 
 import (
@@ -10,50 +6,33 @@ import (
 	"gonum.org/v1/gonum/graph"
 )
 
-// node is a graph.Node implementation that is not exported
-// so that other packages will not be aware of its implementation.
 type node int64
 
-func (n node) ID() int64 { return int64(n) }
+func (n node) ID() int64 { _ = "STUB: not implemented"; return 0 }
 
-// line is an extended graph.Edge implementation that is not exported
-// so that other packages will not be aware of its implementation. It
-// covers all the edge types exported by graph.
 type line struct {
 	F, T graph.Node
 	UID  int64
 	W    float64
 }
 
-func (e line) From() graph.Node         { return e.F }
-func (e line) To() graph.Node           { return e.T }
-func (e line) ReversedEdge() graph.Edge { e.F, e.T = e.T, e.F; return e }
-func (e line) ID() int64                { return e.UID }
-func (e line) Weight() float64          { return e.W }
+func (e line) From() graph.Node         { _ = "STUB: not implemented"; return *new(graph.Node) }
+func (e line) To() graph.Node           { _ = "STUB: not implemented"; return *new(graph.Node) }
+func (e line) ReversedEdge() graph.Edge { _ = "STUB: not implemented"; return *new(graph.Edge) }
+func (e line) ID() int64                { _ = "STUB: not implemented"; return 0 }
+func (e line) Weight() float64          { _ = "STUB: not implemented"; return 0 }
 
 var testCases = []struct {
-	// name is the name of the test.
 	name string
 
-	// nodes is the set of nodes that should be used
-	// to construct the graph.
 	nodes []graph.Node
 
-	// edges is the set of edges that should be used
-	// to construct the graph.
 	edges []WeightedLine
 
-	// nonexist is a set of nodes that should not be
-	// found within the graph.
 	nonexist []graph.Node
 
-	// self is the weight value associated with
-	// a self edge for simple graphs that do not
-	// store individual self edges.
 	self float64
 
-	// absent is the weight value associated
-	// with absent edges.
 	absent float64
 }{
 	{

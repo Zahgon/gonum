@@ -1,15 +1,9 @@
-// Copyright ©2015 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package lapack
 
 import "gonum.org/v1/gonum/blas"
 
-// Complex128 defines the public complex128 LAPACK API supported by gonum/lapack.
 type Complex128 interface{}
 
-// Float64 defines the public float64 LAPACK API supported by gonum/lapack.
 type Float64 interface {
 	Dgecon(norm MatrixNorm, n int, a []float64, lda int, anorm float64, work []float64, iwork []int) float64
 	Dgeev(jobvl LeftEVJob, jobvr RightEVJob, n int, a []float64, lda int, wr, wi []float64, vl []float64, ldvl int, vr []float64, ldvr int, work []float64, lwork int) (first int)
@@ -46,15 +40,13 @@ type Float64 interface {
 	Dtrtrs(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag, n, nrhs int, a []float64, lda int, b []float64, ldb int) (ok bool)
 }
 
-// Direct specifies the direction of the multiplication for the Householder matrix.
 type Direct byte
 
 const (
-	Forward  Direct = 'F' // Reflectors are right-multiplied, H_0 * H_1 * ... * H_{k-1}.
-	Backward Direct = 'B' // Reflectors are left-multiplied, H_{k-1} * ... * H_1 * H_0.
+	Forward  Direct = 'F'
+	Backward Direct = 'B'
 )
 
-// Sort is the sorting order.
 type Sort byte
 
 const (
@@ -62,34 +54,30 @@ const (
 	SortDecreasing Sort = 'D'
 )
 
-// StoreV indicates the storage direction of elementary reflectors.
 type StoreV byte
 
 const (
-	ColumnWise StoreV = 'C' // Reflector stored in a column of the matrix.
-	RowWise    StoreV = 'R' // Reflector stored in a row of the matrix.
+	ColumnWise StoreV = 'C'
+	RowWise    StoreV = 'R'
 )
 
-// MatrixNorm represents the kind of matrix norm to compute.
 type MatrixNorm byte
 
 const (
-	MaxAbs       MatrixNorm = 'M' // max(abs(A(i,j)))
-	MaxColumnSum MatrixNorm = 'O' // Maximum absolute column sum (one norm)
-	MaxRowSum    MatrixNorm = 'I' // Maximum absolute row sum (infinity norm)
-	Frobenius    MatrixNorm = 'F' // Frobenius norm (sqrt of sum of squares)
+	MaxAbs       MatrixNorm = 'M'
+	MaxColumnSum MatrixNorm = 'O'
+	MaxRowSum    MatrixNorm = 'I'
+	Frobenius    MatrixNorm = 'F'
 )
 
-// MatrixType represents the kind of matrix represented in the data.
 type MatrixType byte
 
 const (
-	General  MatrixType = 'G' // A general dense matrix.
-	UpperTri MatrixType = 'U' // An upper triangular matrix.
-	LowerTri MatrixType = 'L' // A lower triangular matrix.
+	General  MatrixType = 'G'
+	UpperTri MatrixType = 'U'
+	LowerTri MatrixType = 'L'
 )
 
-// Pivot specifies the pivot type for plane rotations.
 type Pivot byte
 
 const (
@@ -98,77 +86,68 @@ const (
 	Bottom   Pivot = 'B'
 )
 
-// ApplyOrtho specifies which orthogonal matrix is applied in Dormbr.
 type ApplyOrtho byte
 
 const (
-	ApplyP ApplyOrtho = 'P' // Apply P or Pᵀ.
-	ApplyQ ApplyOrtho = 'Q' // Apply Q or Qᵀ.
+	ApplyP ApplyOrtho = 'P'
+	ApplyQ ApplyOrtho = 'Q'
 )
 
-// GenOrtho specifies which orthogonal matrix is generated in Dorgbr.
 type GenOrtho byte
 
 const (
-	GeneratePT GenOrtho = 'P' // Generate Pᵀ.
-	GenerateQ  GenOrtho = 'Q' // Generate Q.
+	GeneratePT GenOrtho = 'P'
+	GenerateQ  GenOrtho = 'Q'
 )
 
-// SVDJob specifies the singular vector computation type for SVD.
 type SVDJob byte
 
 const (
-	SVDAll       SVDJob = 'A' // Compute all columns of the orthogonal matrix U or V.
-	SVDStore     SVDJob = 'S' // Compute the singular vectors and store them in the orthogonal matrix U or V.
-	SVDOverwrite SVDJob = 'O' // Compute the singular vectors and overwrite them on the input matrix A.
-	SVDNone      SVDJob = 'N' // Do not compute singular vectors.
+	SVDAll       SVDJob = 'A'
+	SVDStore     SVDJob = 'S'
+	SVDOverwrite SVDJob = 'O'
+	SVDNone      SVDJob = 'N'
 )
 
-// GSVDJob specifies the singular vector computation type for Generalized SVD.
 type GSVDJob byte
 
 const (
-	GSVDU    GSVDJob = 'U' // Compute orthogonal matrix U.
-	GSVDV    GSVDJob = 'V' // Compute orthogonal matrix V.
-	GSVDQ    GSVDJob = 'Q' // Compute orthogonal matrix Q.
-	GSVDUnit GSVDJob = 'I' // Use unit-initialized matrix.
-	GSVDNone GSVDJob = 'N' // Do not compute orthogonal matrix.
+	GSVDU    GSVDJob = 'U'
+	GSVDV    GSVDJob = 'V'
+	GSVDQ    GSVDJob = 'Q'
+	GSVDUnit GSVDJob = 'I'
+	GSVDNone GSVDJob = 'N'
 )
 
-// EVComp specifies how eigenvectors are computed in Dsteqr.
 type EVComp byte
 
 const (
-	EVOrig     EVComp = 'V' // Compute eigenvectors of the original symmetric matrix.
-	EVTridiag  EVComp = 'I' // Compute eigenvectors of the tridiagonal matrix.
-	EVCompNone EVComp = 'N' // Do not compute eigenvectors.
+	EVOrig     EVComp = 'V'
+	EVTridiag  EVComp = 'I'
+	EVCompNone EVComp = 'N'
 )
 
-// EVJob specifies whether eigenvectors are computed in Dsyev.
 type EVJob byte
 
 const (
-	EVCompute EVJob = 'V' // Compute eigenvectors.
-	EVNone    EVJob = 'N' // Do not compute eigenvectors.
+	EVCompute EVJob = 'V'
+	EVNone    EVJob = 'N'
 )
 
-// LeftEVJob specifies whether left eigenvectors are computed in Dgeev.
 type LeftEVJob byte
 
 const (
-	LeftEVCompute LeftEVJob = 'V' // Compute left eigenvectors.
-	LeftEVNone    LeftEVJob = 'N' // Do not compute left eigenvectors.
+	LeftEVCompute LeftEVJob = 'V'
+	LeftEVNone    LeftEVJob = 'N'
 )
 
-// RightEVJob specifies whether right eigenvectors are computed in Dgeev.
 type RightEVJob byte
 
 const (
-	RightEVCompute RightEVJob = 'V' // Compute right eigenvectors.
-	RightEVNone    RightEVJob = 'N' // Do not compute right eigenvectors.
+	RightEVCompute RightEVJob = 'V'
+	RightEVNone    RightEVJob = 'N'
 )
 
-// BalanceJob specifies matrix balancing operation.
 type BalanceJob byte
 
 const (
@@ -178,7 +157,6 @@ const (
 	BalanceNone  BalanceJob = 'N'
 )
 
-// SchurJob specifies whether the Schur form is computed in Dhseqr.
 type SchurJob byte
 
 const (
@@ -186,55 +164,48 @@ const (
 	EigenvaluesAndSchur SchurJob = 'S'
 )
 
-// SchurComp specifies whether and how the Schur vectors are computed in Dhseqr.
 type SchurComp byte
 
 const (
-	SchurOrig SchurComp = 'V' // Compute Schur vectors of the original matrix.
-	SchurHess SchurComp = 'I' // Compute Schur vectors of the upper Hessenberg matrix.
-	SchurNone SchurComp = 'N' // Do not compute Schur vectors.
+	SchurOrig SchurComp = 'V'
+	SchurHess SchurComp = 'I'
+	SchurNone SchurComp = 'N'
 )
 
-// UpdateSchurComp specifies whether the matrix of Schur vectors is updated in Dtrexc.
 type UpdateSchurComp byte
 
 const (
-	UpdateSchur     UpdateSchurComp = 'V' // Update the matrix of Schur vectors.
-	UpdateSchurNone UpdateSchurComp = 'N' // Do not update the matrix of Schur vectors.
+	UpdateSchur     UpdateSchurComp = 'V'
+	UpdateSchurNone UpdateSchurComp = 'N'
 )
 
-// EVSide specifies what eigenvectors are computed in Dtrevc3.
 type EVSide byte
 
 const (
-	EVRight EVSide = 'R' // Compute only right eigenvectors.
-	EVLeft  EVSide = 'L' // Compute only left eigenvectors.
-	EVBoth  EVSide = 'B' // Compute both right and left eigenvectors.
+	EVRight EVSide = 'R'
+	EVLeft  EVSide = 'L'
+	EVBoth  EVSide = 'B'
 )
 
-// EVHowMany specifies which eigenvectors are computed in Dtrevc3 and how.
 type EVHowMany byte
 
 const (
-	EVAll      EVHowMany = 'A' // Compute all right and/or left eigenvectors.
-	EVAllMulQ  EVHowMany = 'B' // Compute all right and/or left eigenvectors multiplied by an input matrix.
-	EVSelected EVHowMany = 'S' // Compute selected right and/or left eigenvectors.
+	EVAll      EVHowMany = 'A'
+	EVAllMulQ  EVHowMany = 'B'
+	EVSelected EVHowMany = 'S'
 )
 
-// MaximizeNormXJob specifies the heuristic method for computing a contribution to
-// the reciprocal Dif-estimate in Dlatdf.
 type MaximizeNormXJob byte
 
 const (
-	LocalLookAhead       MaximizeNormXJob = 0 // Solve Z*x=h-f where h is a vector of ±1.
-	NormalizedNullVector MaximizeNormXJob = 2 // Compute an approximate null-vector e of Z, normalize e and solve Z*x=±e-f.
+	LocalLookAhead       MaximizeNormXJob = 0
+	NormalizedNullVector MaximizeNormXJob = 2
 )
 
-// OrthoComp specifies whether and how the orthogonal matrix is computed in Dgghrd.
 type OrthoComp byte
 
 const (
-	OrthoNone     OrthoComp = 'N' // Do not compute the orthogonal matrix.
-	OrthoExplicit OrthoComp = 'I' // The orthogonal matrix is formed explicitly and returned in the argument.
-	OrthoPostmul  OrthoComp = 'V' // The orthogonal matrix is post-multiplied into the matrix stored in the argument on entry.
+	OrthoNone     OrthoComp = 'N'
+	OrthoExplicit OrthoComp = 'I'
+	OrthoPostmul  OrthoComp = 'V'
 )

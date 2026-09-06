@@ -1,7 +1,3 @@
-// Copyright ©2014 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package testblas
 
 import (
@@ -214,60 +210,12 @@ var DgemmCases = []DgemmCase{
 	},
 }
 
-// assumes [][]float64 is actually a matrix
-func transpose(a [][]float64) [][]float64 {
-	b := make([][]float64, len(a[0]))
-	for i := range b {
-		b[i] = make([]float64, len(a))
-		for j := range b[i] {
-			b[i][j] = a[j][i]
-		}
-	}
-	return b
-}
+func transpose(a [][]float64) [][]float64 { _ = "STUB: not implemented"; return nil }
 
-func TestDgemm(t *testing.T, blasser Dgemmer) {
-	for i, test := range DgemmCases {
-		// Test that it passes row major
-		dgemmcomp(i, "RowMajorNoTrans", t, blasser, blas.NoTrans, blas.NoTrans,
-			test.m, test.n, test.k, test.alpha, test.beta, test.a, test.b, test.c, test.ans)
-		// Try with A transposed
-		dgemmcomp(i, "RowMajorTransA", t, blasser, blas.Trans, blas.NoTrans,
-			test.m, test.n, test.k, test.alpha, test.beta, transpose(test.a), test.b, test.c, test.ans)
-		// Try with B transposed
-		dgemmcomp(i, "RowMajorTransB", t, blasser, blas.NoTrans, blas.Trans,
-			test.m, test.n, test.k, test.alpha, test.beta, test.a, transpose(test.b), test.c, test.ans)
-		// Try with both transposed
-		dgemmcomp(i, "RowMajorTransBoth", t, blasser, blas.Trans, blas.Trans,
-			test.m, test.n, test.k, test.alpha, test.beta, transpose(test.a), transpose(test.b), test.c, test.ans)
-	}
-}
+func TestDgemm(t *testing.T, blasser Dgemmer) { _ = "STUB: not implemented"; return }
 
 func dgemmcomp(i int, name string, t *testing.T, blasser Dgemmer, tA, tB blas.Transpose, m, n, k int,
 	alpha, beta float64, a [][]float64, b [][]float64, c [][]float64, ans [][]float64) {
-
-	aFlat := flatten(a)
-	aCopy := flatten(a)
-	bFlat := flatten(b)
-	bCopy := flatten(b)
-	cFlat := flatten(c)
-	ansFlat := flatten(ans)
-	lda := len(a[0])
-	ldb := len(b[0])
-	ldc := len(c[0])
-
-	// Compute the matrix multiplication
-	blasser.Dgemm(tA, tB, m, n, k, alpha, aFlat, lda, bFlat, ldb, beta, cFlat, ldc)
-
-	if !dSliceEqual(aFlat, aCopy) {
-		t.Errorf("Test %v case %v: a changed during call to Dgemm", i, name)
-	}
-	if !dSliceEqual(bFlat, bCopy) {
-		t.Errorf("Test %v case %v: b changed during call to Dgemm", i, name)
-	}
-
-	if !dSliceTolEqual(ansFlat, cFlat) {
-		t.Errorf("Test %v case %v: answer mismatch. Expected %v, Found %v", i, name, ansFlat, cFlat)
-	}
-	// TODO: Need to add a sub-slice test where don't use up full matrix
+	_ = "STUB: not implemented"
+	return
 }

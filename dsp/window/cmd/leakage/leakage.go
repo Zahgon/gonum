@@ -1,60 +1,16 @@
-// Copyright ©2021 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// The leakage program provides summary characteristics and a plot
-// of spectral response for window functions or csv input. It is intended
-// to be used to verify window behaviour against foreign implementations.
-// For example, the behavior of a NumPy window can be captured using this
-// python code:
-//
-//	import matplotlib.pyplot as plt
-//	import numpy as np
-//	from numpy.fft import fft
-//
-//	window = np.blackman(20)
-//	print("# beta = %f" % np.mean(window))
-//
-//	plt.figure()
-//
-//	A = fft(window, 1000)
-//	mag = np.abs(A)
-//	with np.errstate(divide='ignore', invalid='ignore'):
-//	    mag = 20 * np.log10(mag)
-//	mag -= max(mag)
-//	freq = np.linspace(0, len(window)/2, len(A)/2)
-//
-//	for m in mag[:len(mag)/2]:
-//		print(m)
-//
-//	plt.plot(freq, mag[:len(mag)/2])
-//	plt.title("Spectral leakage")
-//	plt.ylabel("Amplitude (dB)")
-//	plt.xlabel("DFT bin")
-//
-//	plt.show()
-//
-// and then be exported to leakage and compared with the Gonum
-// implementation.
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"image/color"
 	"io"
 	"log"
 	"math"
-	"math/cmplx"
 	"os"
-	"strconv"
 	"strings"
 
-	"gonum.org/v1/gonum/dsp/fourier"
 	"gonum.org/v1/gonum/dsp/window"
-	"gonum.org/v1/gonum/floats"
-	"gonum.org/v1/gonum/stat"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
@@ -259,8 +215,6 @@ func main() {
 	}
 }
 
-// characteristics hold DFT window characteristic statistics.
-// See http://www.dsplib.ru/content/win/win.html for details.
 type characteristics struct {
 	deltaF0    float64
 	deltaFhalf float64
@@ -268,124 +222,21 @@ type characteristics struct {
 	beta       float64
 }
 
-// k returns the K window parameter which is the ratio of the window's
-// ΔF_0 to the ΔF_0 of the rectangular window.
-func (c *characteristics) k() float64 {
-	return c.deltaF0 / 2
-}
+func (c *characteristics) k() float64 { _ = "STUB: not implemented"; return 0 }
 
 func funcCharacteristics(fn func([]float64) []float64, n, m int, symm bool) (c *characteristics, xy plotter.XYs, min float64, err error) {
-	if m < n {
-		return nil, nil, 0, fmt.Errorf("window: sequence too short for window: %d < %d", m, n)
-	}
-
-	var w []float64
-	t := make([]float64, m)
-	if symm {
-		w = window.NewValues(fn, n)
-	} else {
-		w = window.NewValues(fn, n+1)[:n]
-	}
-
-	copy(t, w)
-
-	var max float64
-	xy = make(plotter.XYs, m/2+1)
-	fft := fourier.NewFFT(len(t))
-	for i, c := range fft.Coefficients(nil, t) {
-		a := db(cmplx.Abs(c))
-		t[i] = a
-		if !math.IsInf(a, -1) && a < min {
-			min = a
-		}
-		if i == 0 {
-			max = a
-		}
-	}
-	for i, a := range t[:m/2+1] {
-		if math.IsInf(a, -1) {
-			a = min
-		}
-		xy[i] = plotter.XY{X: float64(i) * float64(n) / float64(m), Y: a - max}
-	}
-
-	c = &characteristics{beta: db(stat.Mean(w, nil))}
-	c.deltaF0, c.deltaFhalf, c.gammaMax = parameters(t, n, m)
-
-	return c, xy, min - max, nil
+	_ = "STUB: not implemented"
+	return nil, *new(plotter.XYs), 0, nil
 }
 
 func csvCharacteristics(r io.Reader, n, m int) (c *characteristics, xy plotter.XYs, min float64, err error) {
-	if m < n {
-		return nil, nil, 0, fmt.Errorf("window: sequence too short for window: %d < %d", m, n)
-	}
-	sc := bufio.NewScanner(r)
-	max := math.Inf(-1)
-	var t []float64
-	for sc.Scan() {
-		text := sc.Text()
-		if strings.HasPrefix(text, "#") {
-			continue
-		}
-		v, err := strconv.ParseFloat(text, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if v > max {
-			max = v
-		}
-		t = append(t, v)
-	}
-
-	xy = make(plotter.XYs, len(t))
-	for i, a := range t {
-		if math.IsInf(a, -1) {
-			a = min
-		} else if a < min {
-			min = a
-		}
-		if i == 0 {
-			max = a
-		}
-		xy[i] = plotter.XY{X: float64(i) * float64(n) / float64(m), Y: a - max}
-	}
-	err = sc.Err()
-	if err != nil {
-		return nil, nil, 0, err
-	}
-
-	c = &characteristics{beta: math.NaN()}
-	c.deltaF0, c.deltaFhalf, c.gammaMax = parameters(t, n, m)
-
-	return c, xy, min - max, nil
+	_ = "STUB: not implemented"
+	return nil, *new(plotter.XYs), 0, nil
 }
 
 func parameters(spectrum []float64, n, m int) (deltaF0, deltaFhalf, gammaMax float64) {
-	max := spectrum[0]
-	var peaks []float64
-	for i, r := range spectrum {
-		if i > 1 {
-			if spectrum[i-1] < r && deltaF0 == 0 {
-				deltaF0 = 2 * float64((i-1)*n) / float64(m)
-			}
-			if thresh := max - 3; thresh < spectrum[i-1] && r <= thresh {
-				deltaFhalf = 2 * float64((i-1)*n) / float64(m)
-			}
-		}
-		if i > 2 && spectrum[i-2] <= spectrum[i-1] && spectrum[i-1] > r {
-			peaks = append(peaks, spectrum[i-1])
-		}
-	}
-
-	if len(peaks) == 0 {
-		gammaMax = math.NaN()
-	} else {
-		gammaMax = floats.Max(peaks) - max
-	}
-
-	return deltaF0, deltaFhalf, gammaMax
+	_ = "STUB: not implemented"
+	return 0, 0, 0
 }
 
-func db(m float64) float64 {
-	return 20 * math.Log10(m)
-}
+func db(m float64) float64 { _ = "STUB: not implemented"; return 0 }

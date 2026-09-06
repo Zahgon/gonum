@@ -1,12 +1,6 @@
-// Copyright ©2015 The Gonum Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package gonum
 
-// This list is duplicated in netlib/lapack/netlib. Keep in sync.
 const (
-	// Panic strings for bad enumeration values.
 	badApplyOrtho       = "lapack: bad ApplyOrtho"
 	badBalanceJob       = "lapack: bad BalanceJob"
 	badDiag             = "lapack: bad Diag"
@@ -35,7 +29,6 @@ const (
 	badUplo             = "lapack: bad Uplo"
 	bothSVDOver         = "lapack: both jobU and jobVT are lapack.SVDOverwrite"
 
-	// Panic strings for bad numerical and string values.
 	badIfst     = "lapack: ifst out of range"
 	badIhi      = "lapack: ihi out of range"
 	badIhiz     = "lapack: ihiz out of range"
@@ -99,7 +92,6 @@ const (
 	recurLT0    = "lapack: recur < 0"
 	zeroCFrom   = "lapack: zero cfrom"
 
-	// Panic strings for bad slice lengths.
 	badLenAlpha    = "lapack: bad length of alpha"
 	badLenBeta     = "lapack: bad length of beta"
 	badLenIpiv     = "lapack: bad length of ipiv"
@@ -114,7 +106,6 @@ const (
 	badLenWi       = "lapack: bad length of wi"
 	badLenWr       = "lapack: bad length of wr"
 
-	// Panic strings for insufficient slice lengths.
 	shortA     = "lapack: insufficient length of a"
 	shortAB    = "lapack: insufficient length of ab"
 	shortAuxv  = "lapack: insufficient length of auxv"
@@ -154,7 +145,6 @@ const (
 	shortY     = "lapack: insufficient length of y"
 	shortZ     = "lapack: insufficient length of z"
 
-	// Panic strings for bad leading dimensions of matrices.
 	badLdA    = "lapack: bad leading dimension of A"
 	badLdB    = "lapack: bad leading dimension of B"
 	badLdC    = "lapack: bad leading dimension of C"
@@ -175,7 +165,6 @@ const (
 	badLdY    = "lapack: bad leading dimension of Y"
 	badLdZ    = "lapack: bad leading dimension of Z"
 
-	// Panic strings for bad vector increments.
 	absIncNotOne = "lapack: increment not one or negative one"
 	badIncX      = "lapack: incX <= 0"
 	badIncY      = "lapack: incY <= 0"
